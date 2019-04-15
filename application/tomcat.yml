@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tomcat-depolyment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: tomcat
+    spec:
+      containers:
+      - name: tomcat
+        image: hb_tomcat:v4
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        ports:
+          - containerPort: 8080 
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /usr/local/tomcat/webapps/hanshang-coreService
+      volumes:
+      - name: data
+        hostPath:
+          path: /data/application/hb-tomcat/hanshang-coreService
+      initContainers:
+      - name: init-busy
+        image: busybox
+        command: ['sh','-c','until nslookup mysql-svc; do echo waiting for mysql; sleep 2; done;']
+        command: ['sh','-c','until nslookup redis-svc; do echo waiting for mysql; sleep 2; done;']
+      restartPolicy: Always
+#      nodeSelector:
+#        disktype: ssd
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-svc
+spec:
+  type: NodePort
+  selector:
+    app: tomcat
+  ports:
+  - protocol: TCP
+    nodePort: 30003
+    port: 8080 
+    targetPort: 8080 

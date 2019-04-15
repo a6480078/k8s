@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: producer-consumer
+spec:
+  containers:
+  - name: producer
+    image: centos
+    volumeMounts:
+    - mountPath: /tmp
+      name: shared-volume
+    args:
+    - /bin/bash
+    - -c
+    - echo "Hello world" > /tmp/hello;sleep 30000
+  
+  - name: consumer
+    image: centos
+    volumeMounts:
+    - mountPath: /media
+      name: shared-volume
+    args:
+    - /bin/bash
+    - -c
+    - cat /media/hello;sleep 30000
+  
+  volumes:
+  - name: shared-volume
+    emptyDir: {}

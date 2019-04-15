@@ -1,0 +1,17 @@
+apiVersion: batch/v2alpha1
+kind: CronJob 
+metadata:
+  name: myjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: myjob
+        spec:
+          containers:
+          - name: hello
+            image: centos
+            command: ['echo','hello world']
+          restartPolicy: OnFailure

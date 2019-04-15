@@ -1,0 +1,12 @@
+apiVersion: v1 
+kind: Pod 
+metadata:
+  name: busy
+spec:
+  containers:
+  - name: busy
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - nslookup mysql-svc

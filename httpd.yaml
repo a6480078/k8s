@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: httpd-app
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app : web_server
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:latest
+        ports:
+        - containerPort: 80
+#      nodeSelector:
+#        disktype: ssd

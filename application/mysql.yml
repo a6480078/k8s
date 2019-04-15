@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mysql-depolyment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: hb_mysql:v4
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        args:
+        - mysqld
+        - --character-set-server=utf8
+        ports:
+          - containerPort: 3306
+        readinessProbe:
+          tcpSocket:
+            port: 3306
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        - name: timezone
+          mountPath: /etc/localtime
+      volumes:
+      - name: data
+        hostPath:
+          path: /data/application/data/mysql
+      - name: timezone
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+#      nodeSelector:
+#        disktype: ssd
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+spec:
+  type: NodePort
+  selector:
+    app: mysql
+  ports:
+  - protocol: TCP
+    nodePort: 30002
+    port: 3306 
+    targetPort: 3306

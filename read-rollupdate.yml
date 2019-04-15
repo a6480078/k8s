@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        run: app
+    spec:
+      containers:
+      - name: app 
+        image: centos
+        args:
+        - /bin/bash
+        - -c
+        - sleep 60000
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/a.txt
+          initialDelaySeconds: 10
+          periodSeconds: 5

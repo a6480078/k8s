@@ -1,0 +1,104 @@
+version: '3'
+services:
+    hb_mysql:
+        container_name: ${CONTAINER_PREFIX}_mysql
+        image: ${IMAGE_PREFIX}_mysql:${IMAGE_VERSION}
+        build:
+            context: ./${PACKAGE_PREFIX}-mysql
+#        privileged: true
+        ports:
+            - "3306:3306"
+        networks:
+            hb_network:
+                aliases:
+                  - hb_mysql
+        environment:
+            TZ: 'Asia/Shanghai'
+            MYSQL_ROOT_PASSWORD: Weiwei@2018
+        volumes:
+            - ${DATA_HOME}/mysql:/var/lib/mysql
+            - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+        logging:
+            driver: json-file
+            options:
+                max-file: '3'
+                max-size: 100m
+        command: ['mysqld','--character-set-server=utf8']
+
+    hb_tomcat:
+        container_name: ${CONTAINER_PREFIX}_tomcat
+        image: ${IMAGE_PREFIX}_tomcat:${IMAGE_VERSION}
+        build:
+            context: ./${PACKAGE_PREFIX}-tomcat
+        privileged: true
+        ports:
+            - "60009:8080"
+        networks:
+            hb_network:
+                aliases:
+                  - hb_tomcat
+        environment:
+            TZ: 'Asia/Shanghai'
+        volumes:
+#            - ${TOMCAT_HOME}/hanshang-coreService.war:/usr/local/tomcat/webapps/hanshang-coreService.war
+            - ${TOMCAT_HOME}/hanshang-coreService:/usr/local/tomcat/webapps/hanshang-coreService
+        depends_on:
+            - hb_mysql
+            - hb_redis
+        logging:
+            driver: json-file
+            options:
+                max-file: '3'
+                max-size: 100m
+
+    hb_redis:
+        container_name: ${CONTAINER_PREFIX}_redis
+        image: ${IMAGE_PREFIX}_redis:${IMAGE_VERSION}
+        privileged: true
+        build:
+            context: ./${PACKAGE_PREFIX}-redis
+        volumes:
+            - ${DATA_HOME}/redis:/data:rw
+        ports:
+            - "6379:6379"
+        networks:
+            hb_network:
+                aliases:
+                  - hb_redis
+        environment:
+            TZ: 'Asia/Shanghai'
+        logging:
+            driver: json-file
+            options:
+                max-file: '3'
+                max-size: 100m
+
+    hb_nginx:
+        container_name: ${CONTAINER_PREFIX}_nginx
+        image: ${IMAGE_PREFIX}_nginx:${IMAGE_VERSION}
+        privileged: true
+        build:
+            context: ./${PACKAGE_PREFIX}-nginx
+        ports:
+            - "8015:80"
+        networks:
+            hb_network:
+                aliases:
+                  - hb_nginx
+        depends_on:
+            - hb_tomcat
+            - hb_redis
+        environment:
+            TZ: 'Asia/Shanghai'
+        volumes:
+            - ${NGINX_HOME}/dist/:/usr/share/nginx/html/
+            - ${NGINX_HOME}/nginx.conf:/etc/nginx/nginx.conf
+        logging:
+            driver: json-file
+            options:
+                max-file: '3'
+                max-size: 100m
+
+networks:
+    hb_network:
+      driver: bridge
